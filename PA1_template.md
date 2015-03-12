@@ -91,6 +91,8 @@ length(which(is.na(activity$steps)))
 
 ## 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
+My strategy for imputing missing values is to use the mean for each 5-minute interval.
+
 ## 2a. Make a copy of the master data file
 
 ```r
@@ -212,27 +214,33 @@ activity2weekday <- activity2[ which(activity2$dayofwk == "weekday"), ]
 avgstepsbyweekend <- aggregate(activity2weekend$steps ~ activity2weekend$interval, data=activity2weekend, FUN=mean)
 
 colnames(avgstepsbyweekend) <- c("interval", "steps")
+avgstepsbyweekend[, "dayofwk"] <- "weekend"
+
 
 avgstepsbyweekday <- aggregate(activity2weekday$steps ~ activity2weekday$interval, data=activity2weekday, FUN=mean)
 
 colnames(avgstepsbyweekday) <- c("interval", "steps")
+avgstepsbyweekday[, "dayofwk"] <- "weekday"
+
+avgsteps <- rbind(avgstepsbyweekend, avgstepsbyweekday)
+avgsteps <- avgsteps[order(avgsteps$dayofwk, avgsteps$interval),]
 ```
 
 
 ## 4. Generate time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis.)
 
 ```r
-plot(avgstepsbyweekend$interval, avgstepsbyweekend$steps, type="l",
-     xlab="5 Minute Intervals", ylab="Average # of Steps", main="Average Steps Across All Days for Weekend")
+library(lattice)
+
+xyplot((steps ~ interval|dayofwk),
+           data = avgsteps,
+           type = "l",
+           panel = lattice.getOption("panel.xyplot"),
+           xlab = "Interval",
+           ylab = "Number of steps",
+           layout=c(1,2))
 ```
 
 ![plot of chunk 15](figure/15-1.png) 
-
-```r
-plot(avgstepsbyweekday$interval, avgstepsbyweekday$steps, type="l",
-     xlab="5 Minute Intervals", ylab="Average # of Steps", main="Average Steps Across All Days for Weekday")
-```
-
-![plot of chunk 15](figure/15-2.png) 
      
      
